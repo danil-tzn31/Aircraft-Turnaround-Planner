@@ -1,0 +1,9 @@
+node_modules
+.next
+.env*
+.git
+claude/
+.claude/
+.agents/
+.windsurf/
+src/generated/
