@@ -11,7 +11,7 @@ import type { Adjustment, ScenarioInput, TemplateTask } from "@/lib/types";
 
 // Shared by the task header row and each task row so the columns line up.
 const ROW_COLS =
-  "items-center gap-x-6 lg:gap-x-3 xl:gap-x-6 sm:grid-cols-[minmax(0,1fr)_auto_auto_6.5rem]";
+  "items-center sm:gap-x-6 lg:gap-x-3 xl:gap-x-6 sm:grid-cols-[minmax(0,1fr)_auto_auto_6.5rem]";
 
 const STEP = 5;
 const MAX_DELAY = 180;
@@ -42,25 +42,28 @@ function Stepper({
   hideLabelOnWide?: boolean; // a column header stands in for the label from sm up
   disabled?: boolean;
 }) {
-  const btn =
-    "flex size-11 sm:size-8 items-center justify-center rounded-md border border-control bg-panel text-lg leading-none enabled:hover:bg-ground disabled:opacity-40";
+  const btn = `flex ${stacked ? "size-11" : "size-10"} sm:size-8 items-center justify-center rounded-md border border-control bg-panel text-lg leading-none enabled:hover:bg-ground disabled:opacity-40`;
   return (
     <div
       className={
-        stacked ? "text-sm font-medium text-ink" : "flex items-center gap-2"
+        stacked
+          ? "text-sm font-medium text-ink"
+          : "flex min-w-0 items-center gap-2 max-sm:flex-col max-sm:items-stretch max-sm:gap-0.5"
       }
     >
       <span
         className={
           stacked
             ? "block"
-            : `min-w-20 text-xs text-muted ${hideLabelOnWide ? "sm:hidden" : ""}`
+            : `min-w-20 text-xs text-muted max-sm:min-w-0 ${hideLabelOnWide ? "sm:hidden" : ""}`
         }
       >
         {label}
       </span>
       <div
-        className={stacked ? "mt-1 flex h-11 items-center gap-2" : "contents"}
+        className={stacked
+            ? "mt-1 flex h-11 items-center gap-2"
+            : "contents max-sm:flex max-sm:items-center max-sm:justify-between max-sm:gap-1"}
       >
         <button
           type="button"
@@ -71,7 +74,10 @@ function Stepper({
         >
           −
         </button>
-        <span className="w-14 text-center tabular-nums" aria-live="polite">
+        <span
+          className={`w-14 text-center tabular-nums ${stacked ? "" : "max-sm:w-auto max-sm:flex-1 max-sm:text-sm"}`}
+          aria-live="polite"
+        >
           {value} min
         </span>
         <button
@@ -111,6 +117,14 @@ function resultSentence(summary: Summary) {
   if (summary.buffer === 0)
     return `${pushback} — on time, with no time to spare.`;
   return `${pushback} — on time, ${summary.buffer} min to spare.`;
+}
+
+// One-line version for the pinned bar on phones.
+function compactSentence(summary: Summary) {
+  const pushback = `Pushback ${formatClock(summary.offBlock)}`;
+  return summary.status === "late"
+    ? `${pushback} — ${summary.departureDelay} min late`
+    : `${pushback} — on time`;
 }
 
 const HINT_KEY = "turnaround-planner:hint-dismissed";
@@ -153,6 +167,20 @@ export default function Planner({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [link, setLink] = useState<SavedLink | null>(null);
   const linkField = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLElement>(null);
+  // True once the full result block has scrolled off the top (phones only
+  // show the compact bar then).
+  const [pinned, setPinned] = useState(false);
+
+  useEffect(() => {
+    const el = resultRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) =>
+      setPinned(!entry.isIntersecting && entry.boundingClientRect.bottom <= 0),
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // A saved link only matches the state it was saved from; editing hides it.
   const state = JSON.stringify([input, title.trim()]);
@@ -281,11 +309,17 @@ export default function Planner({
 
   const timeField =
     "block h-11 rounded-md border border-control bg-panel px-3 tabular-nums placeholder:text-muted";
+  // Phones: a full-width row with the switch on the right. From sm up it is
+  // the plain checkbox beside its label.
+  const toggleRow =
+    "flex min-h-11 items-center gap-3 max-sm:justify-between max-sm:rounded-md max-sm:border max-sm:border-line max-sm:px-3";
+  const toggleBox =
+    "size-5 accent-accent max-sm:relative max-sm:order-2 max-sm:h-7 max-sm:w-12 max-sm:shrink-0 max-sm:appearance-none max-sm:rounded-full max-sm:bg-control max-sm:transition-colors max-sm:before:absolute max-sm:before:top-0.5 max-sm:before:left-0.5 max-sm:before:size-6 max-sm:before:rounded-full max-sm:before:bg-panel max-sm:before:transition-transform max-sm:before:content-[''] max-sm:checked:bg-accent max-sm:checked:before:translate-x-5 max-sm:checked:before:bg-ink max-sm:disabled:opacity-50";
   const secondaryBtn =
     "h-11 rounded-md border border-control bg-panel px-4 font-medium hover:bg-ground";
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[400px_minmax(0,1fr)]">
+    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[400px_minmax(0,1fr)]">
       {/* Controls column. Below lg it dissolves (display: contents) into the
           single column, so the result line stays sticky over the whole page.
           The 4px padding keeps focus rings clear of the scroll edge. */}
@@ -293,8 +327,9 @@ export default function Planner({
         {header && <div>{header}</div>}
 
         <section
+          ref={resultRef}
           aria-live="polite"
-          className={`sticky top-0 z-10 -mx-4 border-y border-l-[6px] border-line bg-panel/95 px-4 py-3 shadow-sm backdrop-blur sm:mx-0 sm:rounded-md sm:border-r ${style.edge}`}
+          className={`-mx-4 border-y border-l-[6px] border-line bg-panel/95 px-4 py-3 shadow-sm backdrop-blur sm:sticky sm:top-0 sm:z-10 sm:mx-0 sm:rounded-md sm:border-r ${style.edge}`}
         >
           <p
             className={`text-2xl leading-tight font-bold sm:text-3xl lg:text-2xl xl:text-[1.75rem] ${style.text}`}
@@ -320,65 +355,86 @@ export default function Planner({
           </p>
         </section>
 
+        {/* Phones: zero-height sticky anchor right after the full result. Once
+            that has scrolled away, the one-line version pins to the top. The
+            negative margin cancels the flex gap above it. */}
+        <div aria-hidden="true" className="sticky top-0 z-10 -mt-4 h-0 sm:hidden">
+          <div
+            className={`-mx-4 border-y border-l-[6px] border-line bg-panel/95 px-4 py-2 shadow-sm backdrop-blur ${style.edge} ${pinned ? "" : "hidden"}`}
+          >
+            <p className={`truncate text-base leading-snug font-bold ${style.text}`}>
+              {compactSentence(summary)}
+              {showDelta && change && change.delta !== 0 && (
+                <span className="ml-2 tabular-nums">{formatChange(change.delta)}</span>
+              )}
+            </p>
+          </div>
+        </div>
+
         <p className="text-sm text-muted tabular-nums">
           Arrives {formatClock(summary.onBlock)} · Due out{" "}
           {formatClock(summary.std)} · Turn takes {result.turnMinutes} min
         </p>
 
-        <div className="flex flex-col gap-4 rounded-lg border border-line bg-panel p-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-x-6">
-            <label className="text-sm font-medium text-ink">
-              Scheduled arrival (STA)
+        <div className="flex flex-col gap-3 rounded-lg border border-line bg-panel p-3 sm:gap-4 sm:p-4">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-3 sm:flex sm:flex-row sm:flex-wrap sm:items-end sm:gap-x-6 sm:gap-y-4">
+            <label className="min-w-0 text-sm font-medium text-ink">
+              <span className="sm:hidden">Arrival (STA)</span>
+              <span className="max-sm:hidden">Scheduled arrival (STA)</span>
               <span className="mt-1 flex items-center gap-3">
                 <input
                   type="time"
-                  className={timeField}
+                  className={`${timeField} max-sm:w-full max-sm:min-w-0`}
                   value={input.sta}
                   disabled={locked}
                   onChange={(e) =>
                     e.target.value && setInput({ ...input, sta: e.target.value })
                   }
                 />
-                <span className="font-normal tabular-nums text-muted">
+                <span className="font-normal tabular-nums text-muted max-sm:hidden">
                   {input.sta}
                 </span>
               </span>
             </label>
-            <label className="text-sm font-medium text-ink">
-              Scheduled departure (STD)
+            <label className="min-w-0 text-sm font-medium text-ink">
+              <span className="sm:hidden">Departure (STD)</span>
+              <span className="max-sm:hidden">Scheduled departure (STD)</span>
               <span className="mt-1 flex items-center gap-3">
                 <input
                   type="time"
-                  className={timeField}
+                  className={`${timeField} max-sm:w-full max-sm:min-w-0`}
                   value={input.std}
                   disabled={locked}
                   onChange={(e) =>
                     e.target.value && setInput({ ...input, std: e.target.value })
                   }
                 />
-                <span className="font-normal tabular-nums text-muted">
+                <span className="font-normal tabular-nums text-muted max-sm:hidden">
                   {input.std}
                 </span>
               </span>
             </label>
-            <Stepper
-              label="Inbound delay"
-              stacked
-              value={input.arrivalDelay}
-              max={MAX_DELAY}
-              disabled={locked}
-              downLabel="Inbound delay: earlier"
-              upLabel="Inbound delay: later"
-              onChange={(arrivalDelay) => setInput({ ...input, arrivalDelay })}
-            />
+            <div className="col-span-2 sm:col-auto">
+              <Stepper
+                label="Inbound delay"
+                stacked
+                value={input.arrivalDelay}
+                max={MAX_DELAY}
+                disabled={locked}
+                downLabel="Inbound delay: earlier"
+                upLabel="Inbound delay: later"
+                onChange={(arrivalDelay) => setInput({ ...input, arrivalDelay })}
+              />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-3 text-sm sm:flex-row sm:gap-6 lg:flex-col lg:gap-1">
+          <div className="flex flex-col gap-2 text-sm sm:flex-row sm:gap-3 sm:gap-6 lg:flex-col lg:gap-1">
             {aircraft.twoDoorAvailable ? (
-              <label className="flex min-h-11 items-center gap-3">
+              <label className={toggleRow}>
                 <input
                   type="checkbox"
-                  className="size-5 accent-accent"
+                  role="switch"
+                  className={toggleBox}
                   checked={input.toggles.twoDoor}
                   disabled={locked}
                   onChange={(e) =>
@@ -391,14 +447,15 @@ export default function Planner({
                 Board through two doors
               </label>
             ) : (
-              <p className="flex min-h-11 items-center text-muted">
+              <p className="flex min-h-11 items-center text-muted max-sm:px-1">
                 The ATR 72 boards through one door.
               </p>
             )}
-            <label className="flex min-h-11 items-center gap-3">
+            <label className={toggleRow}>
               <input
                 type="checkbox"
-                className="size-5 accent-accent"
+                role="switch"
+                className={toggleBox}
                 checked={input.toggles.fwpob}
                 disabled={locked}
                 onChange={(e) =>
@@ -515,7 +572,7 @@ export default function Planner({
             <span className="w-[8.5rem]">Runs long</span>
             <span>Time</span>
           </div>
-          <ul className="mt-1.5 flex flex-col gap-3 sm:gap-1.5">
+          <ul className="mt-1.5 flex flex-col gap-2 sm:gap-1.5">
             {result.tasks.map((task) => {
               const adj = input.adjustments[task.key] ?? {
                 startDelay: 0,
@@ -524,17 +581,17 @@ export default function Planner({
               return (
                 <li
                   key={task.key}
-                  className={`flex flex-col gap-2 rounded-lg border border-line bg-panel p-3 sm:grid sm:py-1.5 ${ROW_COLS}`}
+                  className={`grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg border border-line bg-panel p-2.5 sm:gap-y-0 sm:p-3 sm:py-1.5 ${ROW_COLS}`}
                 >
-                  <div className="order-[-2] flex items-baseline gap-2 sm:order-none">
+                  <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 sm:order-none">
                     <span className="font-medium">{task.label}</span>
                     {task.critical && (
-                      <span className="rounded bg-critical px-2 py-0.5 text-xs font-semibold text-critical-ink">
+                      <span className="rounded bg-critical px-1.5 text-[11px] font-semibold sm:px-2 sm:py-0.5 sm:text-xs text-critical-ink">
                         critical
                       </span>
                     )}
                   </div>
-                  <span className="order-[-1] tabular-nums text-sm text-ink sm:order-none sm:col-start-4 sm:row-start-1">
+                  <span className="justify-self-end tabular-nums text-sm text-ink sm:order-none sm:col-start-4 sm:row-start-1 sm:justify-self-start">
                     {formatClock(summary.onBlock + task.earlyStart)}–
                     {formatClock(summary.onBlock + task.earlyFinish)}
                   </span>

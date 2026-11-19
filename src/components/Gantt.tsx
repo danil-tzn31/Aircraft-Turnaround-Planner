@@ -201,13 +201,16 @@ export default function Gantt({
   return (
     <figure className="rounded-lg border border-line bg-panel p-2 sm:p-3">
       <div ref={wrapperRef} className="overflow-x-auto">
+        {/* One grid cell holds both drawings. The label strip is sticky, so it
+            stays at the left edge while the plot scrolls underneath. */}
+        <div className="grid" style={{ width }}>
         <svg
+          className="col-start-1 row-start-1 block font-sans text-xs tabular-nums"
           width={width}
           height={height}
           viewBox={`0 0 ${width} ${height}`}
           role="img"
           aria-label={ariaLabel}
-          className="block font-sans text-xs tabular-nums"
         >
           {/* Row bands and labels */}
           {tasks.map((task, i) => {
@@ -223,15 +226,6 @@ export default function Gantt({
                     className="fill-stripe"
                   />
                 )}
-                <text
-                  x={LABEL_W - 12}
-                  y={y + ROW_H / 2}
-                  textAnchor="end"
-                  dominantBaseline="central"
-                  className="fill-ink"
-                >
-                  {task.label}
-                </text>
               </g>
             );
           })}
@@ -394,6 +388,32 @@ export default function Gantt({
             {pushText}
           </text>
         </svg>
+        <svg
+          width={LABEL_W}
+          height={tasks.length * ROW_H}
+          aria-hidden="true"
+          className="sticky left-0 z-10 col-start-1 row-start-1 block font-sans text-xs"
+          style={{ marginTop: TOP }}
+        >
+          <rect width={LABEL_W} height={tasks.length * ROW_H} className="fill-panel" />
+          {tasks.map((task, i) => (
+            <g key={task.key}>
+              {i % 2 === 0 && (
+                <rect y={i * ROW_H} width={LABEL_W} height={ROW_H} className="fill-stripe" />
+              )}
+              <text
+                x={LABEL_W - 12}
+                y={i * ROW_H + ROW_H / 2}
+                textAnchor="end"
+                dominantBaseline="central"
+                className="fill-ink"
+              >
+                {task.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+        </div>
       </div>
 
       <figcaption className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
