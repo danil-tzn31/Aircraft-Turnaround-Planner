@@ -29,10 +29,11 @@ const CATEGORY: Record<
   departure: { name: "Departure", fill: "fill-cat-departure", stroke: "stroke-cat-departure", bg: "bg-cat-departure" },
 };
 
+// Line in the status colour, label in its darker text shade (12px text needs 4.5:1).
 const STATUS: Record<Status, { stroke: string; fill: string }> = {
-  "on-time": { stroke: "stroke-status-on-time", fill: "fill-status-on-time" },
-  tight: { stroke: "stroke-status-tight", fill: "fill-status-tight" },
-  late: { stroke: "stroke-status-late", fill: "fill-status-late" },
+  "on-time": { stroke: "stroke-status-on-time", fill: "fill-status-on-time-text" },
+  tight: { stroke: "stroke-status-tight", fill: "fill-status-tight-text" },
+  late: { stroke: "stroke-status-late", fill: "fill-status-late-text" },
 };
 
 function useWidth() {
@@ -194,7 +195,7 @@ export default function Gantt({
   );
 
   return (
-    <figure className="mt-6 rounded-lg border border-asphalt-700 bg-asphalt-950 p-3 sm:p-4">
+    <figure className="rounded-lg border border-line bg-panel p-2 sm:p-3">
       <div ref={wrapperRef} className="overflow-x-auto">
         <svg
           width={width}
@@ -215,7 +216,7 @@ export default function Gantt({
                     y={y}
                     width={width}
                     height={ROW_H}
-                    className="fill-asphalt-900"
+                    className="fill-stripe"
                   />
                 )}
                 <text
@@ -223,7 +224,7 @@ export default function Gantt({
                   y={y + ROW_H / 2}
                   textAnchor="end"
                   dominantBaseline="central"
-                  className="fill-asphalt-200"
+                  className="fill-ink"
                 >
                   {task.label}
                 </text>
@@ -239,7 +240,7 @@ export default function Gantt({
                 x2={x(m)}
                 y1={TOP}
                 y2={rowsEnd + 4}
-                className={m === 0 ? "stroke-asphalt-400" : "stroke-asphalt-700"}
+                className={m === 0 ? "stroke-control" : "stroke-grid"}
                 strokeWidth={1}
                 strokeDasharray={m === 0 ? undefined : "2 3"}
               />
@@ -247,7 +248,7 @@ export default function Gantt({
                 x={x(m)}
                 y={rowsEnd + 18}
                 textAnchor="middle"
-                className={m === 0 ? "fill-asphalt-50" : "fill-asphalt-400"}
+                className={m === 0 ? "fill-ink" : "fill-muted"}
               >
                 {formatClock(onBlock + m)}
               </text>
@@ -286,7 +287,7 @@ export default function Gantt({
                     height={BAR_H - 6}
                     rx={2}
                     className={cat.fill}
-                    opacity={0.22}
+                    opacity={0.25}
                   />
                 )}
                 <rect
@@ -295,16 +296,29 @@ export default function Gantt({
                   width={barW}
                   height={BAR_H}
                   rx={2}
-                  className={task.critical ? "fill-safety" : cat.fill}
+                  className={task.critical ? "fill-critical" : cat.fill}
                 />
                 {task.critical && (
-                  <rect
-                    x={x0}
-                    y={y}
-                    width={Math.min(3, barW)}
-                    height={BAR_H}
-                    className={cat.fill}
-                  />
+                  <>
+                    <rect
+                      x={x0}
+                      y={y}
+                      width={Math.min(3, barW)}
+                      height={BAR_H}
+                      className={cat.fill}
+                    />
+                    {/* Dark edge so the yellow holds its shape on white */}
+                    <rect
+                      x={x0 + 0.5}
+                      y={y + 0.5}
+                      width={Math.max(1, barW - 1)}
+                      height={BAR_H - 1}
+                      rx={2}
+                      fill="none"
+                      className="stroke-critical-ink"
+                      strokeWidth={1}
+                    />
+                  </>
                 )}
                 {/* Wider invisible hit area so the tooltip is easy to reach */}
                 <rect
@@ -324,7 +338,7 @@ export default function Gantt({
             x2={stdX}
             y1={markers.std.lineTop}
             y2={rowsEnd + 4}
-            className="stroke-asphalt-50"
+            className="stroke-ink"
             strokeWidth={1.5}
           />
           {markers.std.tickFrom !== undefined && (
@@ -333,7 +347,7 @@ export default function Gantt({
               x2={stdX}
               y1={markers.std.lineTop}
               y2={markers.std.lineTop}
-              className="stroke-asphalt-50"
+              className="stroke-ink"
               strokeWidth={1.5}
             />
           )}
@@ -341,7 +355,7 @@ export default function Gantt({
             x={markers.std.textX}
             y={markers.std.baseline}
             textAnchor="end"
-            className="fill-asphalt-50 font-semibold"
+            className="fill-ink font-semibold"
           >
             {stdText}
           </text>
@@ -364,7 +378,7 @@ export default function Gantt({
         </svg>
       </div>
 
-      <figcaption className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-asphalt-200">
+      <figcaption className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
         {usedCategories.map((c) => (
           <span key={c} className="flex items-center gap-1.5">
             <span className={`size-2.5 rounded-sm ${CATEGORY[c].bg}`} />
@@ -372,15 +386,15 @@ export default function Gantt({
           </span>
         ))}
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-4 rounded-sm border-l-[3px] border-cat-passenger bg-safety" />
+          <span className="h-2.5 w-4 rounded-sm border border-l-[3px] border-critical-ink border-l-cat-passenger bg-critical" />
           Critical path
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-1.5 w-4 rounded-sm bg-asphalt-200/25" />
+          <span className="h-1.5 w-4 rounded-sm bg-cat-passenger/25" />
           Room to slip
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-4 border-t-2 border-dotted border-asphalt-200" />
+          <span className="w-4 border-t-2 border-dotted border-muted" />
           Waiting for team
         </span>
       </figcaption>

@@ -23,17 +23,17 @@ const sections = [
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-20">
+    <main className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-20">
       <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">About</h1>
       <div className="mt-10 max-w-2xl space-y-10">
         {sections.map((s) => (
           <section key={s.heading}>
             <h2 className="text-xl font-semibold">{s.heading}</h2>
-            <p className="mt-3 text-asphalt-200">{s.body}</p>
+            <p className="mt-3 text-ink">{s.body}</p>
           </section>
         ))}
       </div>
-      <p className="mt-16 max-w-2xl text-sm text-asphalt-400">
+      <p className="mt-16 max-w-2xl text-sm text-muted">
         Durations are approximate, based on public manufacturer planning documents. Not for
         operational use.
       </p>

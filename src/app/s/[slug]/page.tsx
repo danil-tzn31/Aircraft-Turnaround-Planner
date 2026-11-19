@@ -73,7 +73,7 @@ export async function generateMetadata({ params }: PageProps<"/s/[slug]">): Prom
 // Not async: params are awaited inside the boundary so the shell renders without them.
 export default function SharedPage({ params }: PageProps<"/s/[slug]">) {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pt-8 pb-16 sm:px-6">
+    <main className="mx-auto w-full max-w-7xl px-4 pt-5 pb-10 sm:px-6 lg:pt-6">
       <Suspense fallback={<SharedSkeleton />}>
         <SharedContent params={params} />
       </Suspense>
@@ -89,36 +89,42 @@ async function SharedContent({ params }: { params: Params }) {
   const { scenario, aircraft, tasks, input, outdated } = shared;
 
   return (
-    <>
-      <h1 className="text-3xl font-bold tracking-tight">{scenario.title ?? aircraft.name}</h1>
-      <p className="mt-1 text-asphalt-400">
-        {scenario.title ? `${aircraft.name} · ` : ""}
-        {aircraft.seats} seats · A saved scenario
-      </p>
-      {outdated && (
-        <p className="mt-4 rounded-md border border-status-tight px-3 py-2 text-sm text-status-tight">
-          Durations have been updated since this was saved.
-        </p>
-      )}
-      <Planner
-        aircraft={aircraft}
-        tasks={tasks}
-        initialInput={input}
-        initialTitle={scenario.title ?? ""}
-        readOnly
-      />
-    </>
+    <Planner
+      aircraft={aircraft}
+      tasks={tasks}
+      initialInput={input}
+      initialTitle={scenario.title ?? ""}
+      readOnly
+      header={
+        <>
+          <h1 className="text-3xl font-bold tracking-tight">{scenario.title ?? aircraft.name}</h1>
+          <p className="mt-1 text-muted">
+            {scenario.title ? `${aircraft.name} · ` : ""}
+            {aircraft.seats} seats · A saved scenario
+          </p>
+          {outdated && (
+            <p className="mt-3 rounded-md border border-status-tight bg-panel px-3 py-2 text-sm text-status-tight-text">
+              Durations have been updated since this was saved.
+            </p>
+          )}
+        </>
+      }
+    />
   );
 }
 
 function SharedSkeleton() {
-  const bar = "rounded bg-asphalt-700 motion-safe:animate-pulse";
+  const bar = "rounded bg-line motion-safe:animate-pulse";
   return (
-    <div aria-busy="true" aria-label="Loading saved scenario">
+    <div
+      aria-busy="true"
+      aria-label="Loading saved scenario"
+      className="grid gap-4 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[400px_minmax(0,1fr)]"
+    >
       <div className="flex h-9 items-center">
         <div className={`h-7 w-56 ${bar}`} />
       </div>
-      <div className="mt-6 min-h-64 rounded-lg border border-dashed border-asphalt-600 bg-asphalt-800" />
+      <div className="min-h-64 rounded-lg border border-dashed border-line bg-panel lg:min-h-96" />
     </div>
   );
 }

@@ -4,41 +4,64 @@
   --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
 }
 
+/*
+  "Daylight ramp" theme. The OG images can't read CSS, so src/lib/theme.ts
+  mirrors these values; src/lib/theme.test.ts checks they match and that the
+  text pairs pass WCAG AA.
+*/
 @theme {
-  /* Ramp surfaces */
-  --color-asphalt-950: #141619;
-  --color-asphalt-900: #1c1f23;
-  --color-asphalt-800: #262a2f;
-  --color-asphalt-700: #353a41;
-  --color-asphalt-600: #4a5059;
-  --color-asphalt-400: #8a9099;
-  --color-asphalt-200: #c9ccd1;
-  --color-asphalt-50: #f2f3f4;
+  /* Surfaces */
+  --color-ground: #f5f3ee; /* concrete white page background */
+  --color-panel: #ffffff;
+  --color-line: #e2ded5; /* panel borders, dividers */
+  --color-control: #857f73; /* input and button outlines, 3:1 on panel and ground */
+  --color-stripe: #f8f6f2; /* Gantt row striping */
+  --color-grid: #e2ded5; /* Gantt gridlines */
 
-  /* Reserved for the critical path */
-  --color-safety: #ffd200;
-  --color-safety-ink: #1c1f23;
+  /* Text */
+  --color-ink: #15181d;
+  --color-muted: #5e6470;
 
-  /* One muted colour per task category */
-  --color-cat-passenger: #7f9fc9;
-  --color-cat-baggage: #b8925f;
-  --color-cat-fuel: #c47f70;
-  --color-cat-catering: #8fb07f;
-  --color-cat-cleaning: #6db3aa;
-  --color-cat-technical: #a395c4;
-  --color-cat-departure: #a7adb5;
+  /* Reserved for the critical path. Always dark text or edges on it. */
+  --color-critical: #f5b800;
+  --color-critical-ink: #15181d;
 
-  /* Status text, all above 7:1 on asphalt-900 */
-  --color-status-on-time: #5fd68a;
-  --color-status-tight: #ffb347;
-  --color-status-late: #ff8080;
+  /* Accent: primary buttons, focus rings. Orange is too light for text,
+     so links use the darker accent-text. */
+  --color-accent: #ff6a13;
+  --color-accent-hover: #f25c00;
+  --color-accent-text: #b83f00;
+
+  /* Status. The base colours are for lines, edges and fills;
+     the -text shades are for words (AA on panel and ground). */
+  --color-status-on-time: #1f9d55;
+  --color-status-tight: #e08a00;
+  --color-status-late: #d7263d;
+  --color-status-on-time-text: #177a42;
+  --color-status-tight-text: #9a5b00;
+  --color-status-late-text: #c21f35;
+
+  /* One muted colour per task category, each 3:1+ on panel and ground,
+     none near the critical yellow. */
+  --color-cat-passenger: #3e6fb0;
+  --color-cat-baggage: #8a6a45;
+  --color-cat-fuel: #a34d86;
+  --color-cat-catering: #4c8b3f;
+  --color-cat-cleaning: #2a8585;
+  --color-cat-technical: #6a5aae;
+  --color-cat-departure: #6b7280;
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  background: var(--color-asphalt-900);
-  color: var(--color-asphalt-50);
+  background: var(--color-ground);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
