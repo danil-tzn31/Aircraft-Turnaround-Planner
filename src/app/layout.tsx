@@ -14,10 +14,12 @@ const SITE_NAME = "Aircraft Turnaround Planner";
 const TAGLINE = "See how delays move an aircraft's departure, using critical path scheduling.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://aircraft-turnaround-planner.vercel.app"),
   title: { default: SITE_NAME, template: `%s · ${SITE_NAME}` },
   description: TAGLINE,
   applicationName: SITE_NAME,
   openGraph: { title: SITE_NAME, description: TAGLINE, siteName: SITE_NAME, type: "website" },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

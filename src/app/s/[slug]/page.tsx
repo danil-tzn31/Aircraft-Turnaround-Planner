@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: PageProps<"/s/[slug]">): Prom
   const description = `${aircraft.id} turn — ${pushback}, ${outcome}.`;
   const title = scenario.title ?? `${aircraft.id} turn`;
 
-  return { title, description, openGraph: { title, description } };
+  return { title, description, openGraph: { title, description, url: `/s/${slug}` } };
 }
 
 // Not async: params are awaited inside the boundary so the shell renders without them.
