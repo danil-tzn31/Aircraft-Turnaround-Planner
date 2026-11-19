@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  /* Ramp surfaces */
+  --color-asphalt-950: #141619;
+  --color-asphalt-900: #1c1f23;
+  --color-asphalt-800: #262a2f;
+  --color-asphalt-700: #353a41;
+  --color-asphalt-600: #4a5059;
+  --color-asphalt-400: #8a9099;
+  --color-asphalt-200: #c9ccd1;
+  --color-asphalt-50: #f2f3f4;
+
+  /* Reserved for the critical path */
+  --color-safety: #ffd200;
+  --color-safety-ink: #1c1f23;
+
+  /* One muted colour per task category */
+  --color-cat-passenger: #7f9fc9;
+  --color-cat-baggage: #b8925f;
+  --color-cat-fuel: #c47f70;
+  --color-cat-catering: #8fb07f;
+  --color-cat-cleaning: #6db3aa;
+  --color-cat-technical: #a395c4;
+  --color-cat-departure: #a7adb5;
+
+  /* Status text, all above 7:1 on asphalt-900 */
+  --color-status-on-time: #5fd68a;
+  --color-status-tight: #ffb347;
+  --color-status-late: #ff8080;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-asphalt-900);
+  color: var(--color-asphalt-50);
 }
