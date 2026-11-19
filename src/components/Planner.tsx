@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Gantt from "@/components/Gantt";
 import { formatClock, summarise, type Status, type Summary } from "@/lib/clock";
 import { defaultInput, effectiveToggles } from "@/lib/defaults";
 import { schedule } from "@/lib/schedule";
@@ -247,9 +248,7 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
         </button>
       </div>
 
-      <div className="mt-6 flex min-h-64 items-center justify-center rounded-lg border border-dashed border-asphalt-600 bg-asphalt-800 text-sm text-asphalt-400">
-        Timeline goes here
-      </div>
+      <Gantt result={result} summary={summary} />
 
       <div
         aria-hidden="true"
