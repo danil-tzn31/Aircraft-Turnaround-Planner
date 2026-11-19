@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,55 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Category {
+  passenger
+  baggage
+  fuel
+  catering
+  cleaning
+  technical
+  departure
+}
+
+model AircraftType {
+  id                   String         @id // "A320", "A21N", "A339", "AT76"
+  name                 String
+  seats                Int
+  twoDoorAvailable     Boolean        @default(true)
+  defaultTwoDoor       Boolean        @default(false)
+  defaultGroundMinutes Int
+  templateVersion      Int            @default(1)
+  sourceNote           String
+  tasks                TemplateTask[]
+  scenarios            Scenario[]
+}
+
+model TemplateTask {
+  id                    Int          @id @default(autoincrement())
+  aircraftTypeId        String
+  aircraftType          AircraftType @relation(fields: [aircraftTypeId], references: [id])
+  key                   String
+  label                 String
+  category              Category
+  durationOneDoor       Int
+  durationTwoDoor       Int
+  startOffset           Int          @default(0)
+  dependsOn             String[]
+  dependsOnWithoutFwpob String[]
+  sortOrder             Int
+
+  @@unique([aircraftTypeId, key])
+}
+
+model Scenario {
+  id              String       @id // nanoid(8), used in the share URL
+  aircraftTypeId  String
+  aircraftType    AircraftType @relation(fields: [aircraftTypeId], references: [id])
+  title           String?
+  input           Json // ScenarioInput, validated with zod before insert
+  inputHash       String       @unique // sha256 of normalised input + title + templateVersion
+  templateVersion Int
+  createdAt       DateTime     @default(now())
 }

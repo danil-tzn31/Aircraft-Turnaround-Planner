@@ -1,0 +1,50 @@
+aircraft,key,label,category,dur_one_door,dur_two_door,start_offset,depends_on,depends_on_without_fwpob,sort
+A320,chocks,Chocks and bridge,technical,2,2,0,,,1
+A320,bag_unload,Baggage unload,baggage,8,8,0,,,2
+A320,toilet,Toilet service,cleaning,8,8,0,,,3
+A320,water,Potable water,technical,9,9,0,toilet,,4
+A320,deboard,Deboarding,passenger,9,5,0,chocks,,5
+A320,fuel,Fuelling,fuel,19,19,0,chocks,deboard,6
+A320,catering_fwd,Catering (front galley),catering,6,6,0,deboard,,7
+A320,cleaning,Cabin cleaning,cleaning,12,12,0,deboard,,8
+A320,catering_aft,Catering (rear galley),catering,12,12,0,catering_fwd,,9
+A320,bag_load,Baggage load,baggage,8,8,0,bag_unload,,10
+A320,board,Boarding,passenger,15,8,0,cleaning;catering_aft,fuel,11
+A320,headcount,Final headcount,passenger,2,2,0,board,,12
+A320,close,Close doors and remove bridge,departure,2,2,0,headcount;bag_load;water;fuel,,13
+A21N,chocks,Chocks and bridge,technical,2,2,0,,,1
+A21N,bag_unload,Baggage unload,baggage,10,10,1,,,2
+A21N,water,Potable water,technical,7,7,1,,,3
+A21N,toilet,Toilet service,cleaning,8,8,0,water,,4
+A21N,deboard,Deboarding,passenger,12,6,0,chocks,,5
+A21N,fuel,Fuelling,fuel,17,17,0,chocks,deboard,6
+A21N,catering_fwd,Catering (front galley),catering,6,6,0,deboard,,7
+A21N,cleaning,Cabin cleaning,cleaning,14,14,0,deboard,,8
+A21N,catering_aft,Catering (rear galley),catering,16,16,0,catering_fwd,,9
+A21N,bag_load,Baggage load,baggage,9,9,0,bag_unload,,10
+A21N,board,Boarding,passenger,20,10,0,cleaning;catering_aft,fuel,11
+A21N,headcount,Final headcount,passenger,2,2,0,board,,12
+A21N,close,Close doors and remove bridge,departure,2,2,0,headcount;bag_load;toilet;fuel,,13
+AT76,chocks,Chocks and stairs,technical,1,1,0,,,1
+AT76,bag_unload,Baggage unload,baggage,6,6,1,,,2
+AT76,toilet,Toilet service,cleaning,6,6,1,,,3
+AT76,deboard,Deboarding,passenger,5,5,0,chocks,,4
+AT76,fuel,Fuelling,fuel,8,8,0,chocks,deboard,5
+AT76,catering,Catering,catering,5,5,0,deboard,,6
+AT76,cleaning,Cabin cleaning,cleaning,6,6,0,deboard,,7
+AT76,bag_load,Baggage load,baggage,7,7,0,bag_unload,,8
+AT76,board,Boarding,passenger,7,7,0,cleaning;catering,fuel,9
+AT76,headcount,Final headcount,passenger,1,1,0,board,,10
+AT76,close,Close doors and remove stairs,departure,1,1,0,headcount;bag_load;toilet;fuel,,11
+A339,chocks,Chocks and bridges,technical,2,2,0,,,1
+A339,bag_unload,Baggage and cargo unload,baggage,24,24,0,,,2
+A339,toilet,Toilet service,cleaning,15,15,0,,,3
+A339,water,Potable water,technical,16,16,0,toilet,,4
+A339,deboard,Deboarding,passenger,18,9,0,chocks,,5
+A339,fuel,Fuelling,fuel,42,42,8,chocks,deboard,6
+A339,catering,Catering (three galleys),catering,33,33,0,deboard,,7
+A339,cleaning,Cabin cleaning,cleaning,25,25,0,deboard,,8
+A339,bag_load,Baggage and cargo load,baggage,28,28,0,bag_unload,,9
+A339,board,Boarding,passenger,31,15,0,cleaning;catering,fuel,10
+A339,headcount,Final headcount,passenger,4,4,0,board,,11
+A339,close,Close doors and remove bridges,departure,2,2,0,headcount;bag_load;water;fuel,,12

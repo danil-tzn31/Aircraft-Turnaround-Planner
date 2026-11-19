@@ -1,0 +1,5 @@
+id,name,seats,two_door_available,default_two_door,default_ground,template_version,source_note
+A320,Airbus A320,180,true,false,45,1,Airbus A320 AC rev 46 (Jul 01/26) section 5-2-0; passenger times scaled to 180 seats
+A21N,Airbus A321neo,236,true,false,50,1,Airbus A321 AC rev 35 (Jul 01/26) section 5-2-0; passenger times scaled to 236 seats
+A339,Airbus A330neo,459,true,true,70,1,Airbus A330 AC rev 34 (Dec 01/25) section 5-2-0; passenger times scaled to 459 seats
+AT76,ATR 72-600,78,false,false,25,1,Estimated - no public ATR turnaround chart used

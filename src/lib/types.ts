@@ -9,7 +9,7 @@ export type Category =
   | "technical"
   | "departure";
 
-export type AircraftTypeId = "A320" | "A21N" | "AT76";
+export type AircraftTypeId = "A320" | "A21N" | "A339" | "AT76";
 
 export type TemplateTask = {
   key: string;
