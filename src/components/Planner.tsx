@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { saveScenario } from "@/app/actions";
 import Gantt from "@/components/Gantt";
 import { formatClock, summarise, type Status, type Summary } from "@/lib/clock";
 import { defaultInput, effectiveToggles } from "@/lib/defaults";
@@ -29,6 +30,7 @@ function Stepper({
   upLabel,
   stacked = false,
   hideLabelOnWide = false,
+  disabled = false,
 }: {
   label: string;
   value: number;
@@ -38,6 +40,7 @@ function Stepper({
   upLabel: string;
   stacked?: boolean; // label above the control, in the same style as the time fields
   hideLabelOnWide?: boolean; // a column header stands in for the label from sm up
+  disabled?: boolean;
 }) {
   const btn =
     "flex size-11 sm:size-8 items-center justify-center rounded-md border border-asphalt-600 bg-asphalt-800 text-lg leading-none disabled:opacity-40";
@@ -63,7 +66,7 @@ function Stepper({
           type="button"
           className={btn}
           aria-label={downLabel}
-          disabled={value <= 0}
+          disabled={disabled || value <= 0}
           onClick={() => onChange(clamp(value - STEP, max))}
         >
           −
@@ -75,7 +78,7 @@ function Stepper({
           type="button"
           className={btn}
           aria-label={upLabel}
-          disabled={value >= max}
+          disabled={disabled || value >= max}
           onClick={() => onChange(clamp(value + STEP, max))}
         >
           +
@@ -89,6 +92,7 @@ type Props = {
   aircraft: Aircraft;
   tasks: TemplateTask[];
   initialInput?: ScenarioInput;
+  initialTitle?: string;
   readOnly?: boolean;
 };
 
@@ -107,11 +111,28 @@ function resultSentence(summary: Summary) {
   return `${pushback} — on time, ${summary.buffer} min to spare.`;
 }
 
-// readOnly is wired up in P6.
-export default function Planner({ aircraft, tasks, initialInput }: Props) {
+type SavedLink = { url: string; copied: boolean; forState: string };
+
+export default function Planner({
+  aircraft,
+  tasks,
+  initialInput,
+  initialTitle = "",
+  readOnly = false,
+}: Props) {
   const [input, setInput] = useState<ScenarioInput>(
     () => initialInput ?? defaultInput(aircraft),
   );
+  const [locked, setLocked] = useState(readOnly);
+  const [title, setTitle] = useState(initialTitle);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [link, setLink] = useState<SavedLink | null>(null);
+  const linkField = useRef<HTMLInputElement>(null);
+
+  // A saved link only matches the state it was saved from; editing hides it.
+  const state = JSON.stringify([input, title.trim()]);
+  const shownLink = link && link.forState === state ? link : null;
 
   const result = schedule(
     tasks,
@@ -137,6 +158,37 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
         adjustments: { ...prev.adjustments, [key]: { ...current, ...patch } },
       };
     });
+  }
+
+  async function save() {
+    setSaving(true);
+    setSaveError(null);
+    const forState = state;
+    const res = await saveScenario(input, title);
+    setSaving(false);
+    if ("error" in res) {
+      setSaveError(res.error);
+      return;
+    }
+    const url = `${window.location.origin}/s/${res.slug}`;
+    setLink({ url, copied: false, forState });
+    // Safari can refuse this after the await; the link field below is the fallback.
+    try {
+      await navigator.clipboard.writeText(url);
+      setLink({ url, copied: true, forState });
+    } catch {
+      linkField.current?.select();
+    }
+  }
+
+  async function copyLink() {
+    if (!shownLink) return;
+    try {
+      await navigator.clipboard.writeText(shownLink.url);
+      setLink({ ...shownLink, copied: true });
+    } catch {
+      linkField.current?.select();
+    }
   }
 
   const timeField =
@@ -172,6 +224,7 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
               type="time"
               className={timeField}
               value={input.sta}
+              disabled={locked}
               onChange={(e) =>
                 e.target.value && setInput({ ...input, sta: e.target.value })
               }
@@ -186,6 +239,7 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
               type="time"
               className={timeField}
               value={input.std}
+              disabled={locked}
               onChange={(e) =>
                 e.target.value && setInput({ ...input, std: e.target.value })
               }
@@ -198,6 +252,7 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
           stacked
           value={input.arrivalDelay}
           max={MAX_DELAY}
+          disabled={locked}
           downLabel="Inbound delay: earlier"
           upLabel="Inbound delay: later"
           onChange={(arrivalDelay) => setInput({ ...input, arrivalDelay })}
@@ -211,6 +266,7 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
               type="checkbox"
               className="size-5"
               checked={input.toggles.twoDoor}
+              disabled={locked}
               onChange={(e) =>
                 setInput({
                   ...input,
@@ -230,6 +286,7 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
             type="checkbox"
             className="size-5"
             checked={input.toggles.fwpob}
+            disabled={locked}
             onChange={(e) =>
               setInput({
                 ...input,
@@ -239,14 +296,75 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
           />
           Refuel with passengers on board
         </label>
-        <button
-          type="button"
-          className="h-11 rounded-md border border-asphalt-600 px-4 sm:ml-auto"
-          onClick={() => setInput(defaultInput(aircraft))}
-        >
-          Reset
-        </button>
+        {locked ? (
+          <button
+            type="button"
+            className="h-11 rounded-md border border-asphalt-600 px-4 sm:ml-auto"
+            onClick={() => setLocked(false)}
+          >
+            Copy and edit
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="h-11 rounded-md border border-asphalt-600 px-4 sm:ml-auto"
+            onClick={() => setInput(defaultInput(aircraft))}
+          >
+            Reset
+          </button>
+        )}
       </div>
+
+      {!locked && (
+        <div className="mt-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label className="text-sm text-asphalt-200 sm:w-72">
+              Title (optional)
+              <input
+                type="text"
+                maxLength={60}
+                className={`${timeField} mt-1 w-full`}
+                value={title}
+                placeholder="e.g. Rainy day, late catering"
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="h-11 rounded-md bg-safety px-4 font-semibold text-asphalt-950 disabled:opacity-60"
+              disabled={saving}
+              onClick={save}
+            >
+              {saving ? "Saving…" : "Save & share"}
+            </button>
+          </div>
+          <div aria-live="polite" className="mt-2 text-sm">
+            {saveError && <p className="text-status-late">{saveError}</p>}
+            {shownLink?.copied && (
+              <p className="text-status-on-time">Link copied</p>
+            )}
+          </div>
+          {shownLink && (
+            <div className="mt-2 flex gap-2">
+              <input
+                ref={linkField}
+                readOnly
+                aria-label="Share link"
+                className={`${timeField} min-w-0 flex-1`}
+                value={shownLink.url}
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <button
+                type="button"
+                className="h-11 rounded-md border border-asphalt-600 px-4"
+                onClick={copyLink}
+              >
+                Copy
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <Gantt result={result} summary={summary} />
 
@@ -287,6 +405,7 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
                 label="Starts late"
                 value={adj.startDelay}
                 max={MAX_ADJUST}
+                disabled={locked}
                 downLabel={`${task.label}: start earlier`}
                 upLabel={`${task.label}: start later`}
                 onChange={(startDelay) =>
@@ -298,6 +417,7 @@ export default function Planner({ aircraft, tasks, initialInput }: Props) {
                 label="Runs long"
                 value={adj.extraDuration}
                 max={MAX_ADJUST}
+                disabled={locked}
                 downLabel={`${task.label}: run shorter`}
                 upLabel={`${task.label}: run longer`}
                 onChange={(extraDuration) =>

@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "./db";
-import type { AircraftTypeId, TemplateTask } from "./types";
+import { isSlug, scenarioInputSchema } from "./scenario";
+import type { AircraftTypeId, ScenarioInput, TemplateTask } from "./types";
 
 export const AIRCRAFT_TYPE_IDS = ["A320", "A21N", "A339", "AT76"] as const satisfies readonly AircraftTypeId[];
 
@@ -45,6 +46,37 @@ export async function getAircraftTypes(): Promise<Aircraft[]> {
     .filter((row) => isAircraftTypeId(row.id))
     .map((row) => ({ ...row, id: row.id as AircraftTypeId }))
     .sort((a, b) => fleetOrder(a.id) - fleetOrder(b.id));
+}
+
+export type SavedScenario = {
+  id: string;
+  title: string | null;
+  input: ScenarioInput;
+  templateVersion: number;
+  aircraftTypeId: AircraftTypeId;
+};
+
+// Saved scenarios never change, so they can be cached for good.
+export async function getScenario(slug: string): Promise<SavedScenario | null> {
+  "use cache";
+  cacheLife("max");
+
+  if (!isSlug(slug)) return null;
+
+  const row = await db.scenario.findUnique({ where: { id: slug } });
+  if (!row) return null;
+
+  // The row was validated on the way in; check again in case it was edited by hand.
+  const input = scenarioInputSchema.safeParse(row.input);
+  if (!input.success || !isAircraftTypeId(row.aircraftTypeId)) return null;
+
+  return {
+    id: row.id,
+    title: row.title,
+    input: input.data,
+    templateVersion: row.templateVersion,
+    aircraftTypeId: row.aircraftTypeId,
+  };
 }
 
 export async function getTemplate(typeId: string): Promise<Template | null> {
