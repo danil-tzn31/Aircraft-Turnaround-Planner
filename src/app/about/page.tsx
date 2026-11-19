@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PAGE_CONTAINER } from "@/lib/layout";
 
 export const metadata: Metadata = { title: "About" };
 
@@ -23,7 +24,7 @@ const sections = [
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-20">
+    <main className={`${PAGE_CONTAINER} py-12 sm:py-20`}>
       <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">About</h1>
       <div className="mt-10 max-w-2xl space-y-10">
         {sections.map((s) => (

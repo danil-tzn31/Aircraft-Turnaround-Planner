@@ -15,7 +15,14 @@ const ROW = 5;
 const BAR = 3;
 
 // Compact, non-interactive timeline: thin bars only, critical ones in yellow.
-export default function TurnPreview({ result }: { result: ScheduleResult }) {
+export default function TurnPreview({
+  result,
+  className = "h-14",
+}: {
+  result: ScheduleResult;
+  /** Height class; the width always fills the container. */
+  className?: string;
+}) {
   const { tasks, turnMinutes } = result;
   const height = tasks.length * ROW;
   const x = (m: number) => (m / turnMinutes) * W;
@@ -24,7 +31,7 @@ export default function TurnPreview({ result }: { result: ScheduleResult }) {
       viewBox={`0 0 ${W} ${height}`}
       preserveAspectRatio="none"
       aria-hidden="true"
-      className="block h-14 w-full"
+      className={`block w-full ${className}`}
     >
       {tasks.map((t, i) => (
         <rect

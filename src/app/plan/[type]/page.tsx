@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Planner from "@/components/Planner";
 import { AIRCRAFT_TYPE_IDS, getTemplate, isAircraftTypeId } from "@/lib/templates";
+import { PAGE_CONTAINER } from "@/lib/layout";
 
 type Params = PageProps<"/plan/[type]">["params"];
 
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: PageProps<"/plan/[type]">): P
 // Not async: params are awaited inside the boundary so the shell renders without them.
 export default function PlanPage({ params }: PageProps<"/plan/[type]">) {
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 pt-5 pb-10 sm:px-6 lg:pt-6">
+    <main className={`${PAGE_CONTAINER} pt-5 pb-10 lg:pt-6`}>
       <Suspense fallback={<PlanSkeleton />}>
         <PlanContent params={params} />
       </Suspense>

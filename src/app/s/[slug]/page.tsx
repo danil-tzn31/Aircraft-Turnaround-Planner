@@ -8,6 +8,7 @@ import { isSlug } from "@/lib/scenario";
 import { schedule } from "@/lib/schedule";
 import { getScenario, getTemplate } from "@/lib/templates";
 import type { ScenarioInput } from "@/lib/types";
+import { PAGE_CONTAINER } from "@/lib/layout";
 
 type Params = PageProps<"/s/[slug]">["params"];
 
@@ -73,7 +74,7 @@ export async function generateMetadata({ params }: PageProps<"/s/[slug]">): Prom
 // Not async: params are awaited inside the boundary so the shell renders without them.
 export default function SharedPage({ params }: PageProps<"/s/[slug]">) {
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 pt-5 pb-10 sm:px-6 lg:pt-6">
+    <main className={`${PAGE_CONTAINER} pt-5 pb-10 lg:pt-6`}>
       <Suspense fallback={<SharedSkeleton />}>
         <SharedContent params={params} />
       </Suspense>
