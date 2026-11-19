@@ -61,7 +61,7 @@ function PlanSkeleton() {
     <div
       aria-busy="true"
       aria-label="Loading planner"
-      className="grid gap-4 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[400px_minmax(0,1fr)]"
+      className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[400px_minmax(0,1fr)]"
     >
       <div className="flex flex-col gap-4">
         <div>

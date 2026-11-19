@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { saveScenario } from "@/app/actions";
 import Gantt from "@/components/Gantt";
 import { formatClock, summarise, type Status, type Summary } from "@/lib/clock";
@@ -11,7 +11,7 @@ import type { Adjustment, ScenarioInput, TemplateTask } from "@/lib/types";
 
 // Shared by the task header row and each task row so the columns line up.
 const ROW_COLS =
-  "items-center gap-x-6 sm:grid-cols-[minmax(0,1fr)_auto_auto_6.5rem]";
+  "items-center gap-x-6 lg:gap-x-3 xl:gap-x-6 sm:grid-cols-[minmax(0,1fr)_auto_auto_6.5rem]";
 
 const STEP = 5;
 const MAX_DELAY = 180;
@@ -113,6 +113,27 @@ function resultSentence(summary: Summary) {
   return `${pushback} — on time, ${summary.buffer} min to spare.`;
 }
 
+const HINT_KEY = "turnaround-planner:hint-dismissed";
+
+const hintListeners = new Set<() => void>();
+function subscribeHint(listener: () => void) {
+  hintListeners.add(listener);
+  return () => void hintListeners.delete(listener);
+}
+let hintDismissedInMemory = false; // fallback when storage is unavailable
+function readHintDismissed() {
+  if (hintDismissedInMemory) return true;
+  try {
+    return localStorage.getItem(HINT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function formatChange(delta: number) {
+  return `${delta > 0 ? "+" : "−"}${Math.abs(delta)} min`;
+}
+
 type SavedLink = { url: string; copied: boolean; forState: string };
 
 export default function Planner({
@@ -149,6 +170,70 @@ export default function Planner({
     (key) => labelFor.get(key) ?? key,
   );
   const style = STATUS_STYLE[summary.status];
+
+  // Compare each new schedule with the previous one. The ref holds the last
+  // one seen; the signature keeps the effect from firing on unrelated renders.
+  const signature = JSON.stringify([
+    summary.offBlock,
+    result.tasks.map((t) => [t.key, t.earlyStart, t.earlyFinish]),
+  ]);
+  const prevSchedule = useRef<{
+    offBlock: number;
+    times: Map<string, string>;
+  } | null>(null);
+  const [change, setChange] = useState<{
+    id: number;
+    delta: number;
+    keys: ReadonlySet<string>;
+  } | null>(null);
+  const [showDelta, setShowDelta] = useState(false);
+  const flashTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const deltaTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    const times = new Map(
+      result.tasks.map((t) => [t.key, `${t.earlyStart}-${t.earlyFinish}`]),
+    );
+    const prev = prevSchedule.current;
+    prevSchedule.current = { offBlock: summary.offBlock, times };
+    if (!prev) return;
+    const keys = new Set(
+      [...times].filter(([key, span]) => prev.times.get(key) !== span).map(([key]) => key),
+    );
+    const delta = summary.offBlock - prev.offBlock;
+    if (keys.size === 0 && delta === 0) return;
+    setChange((c) => ({ id: (c?.id ?? 0) + 1, delta, keys }));
+    setShowDelta(delta !== 0);
+    clearTimeout(flashTimer.current);
+    clearTimeout(deltaTimer.current);
+    flashTimer.current = setTimeout(() => setChange((c) => c && { ...c, keys: new Set() }), 1000);
+    deltaTimer.current = setTimeout(() => setShowDelta(false), 3000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- signature stands in for result/summary
+  }, [signature]);
+
+  useEffect(
+    () => () => {
+      clearTimeout(flashTimer.current);
+      clearTimeout(deltaTimer.current);
+    },
+    [],
+  );
+
+  // Server snapshot is "dismissed", so the hint never flashes in for
+  // someone who already closed it.
+  const hintDismissed = useSyncExternalStore(
+    subscribeHint,
+    readHintDismissed,
+    () => true,
+  );
+
+  function dismissHint() {
+    hintDismissedInMemory = true;
+    try {
+      localStorage.setItem(HINT_KEY, "1");
+    } catch {}
+    hintListeners.forEach((l) => l());
+  }
 
   function setAdjustment(key: string, patch: Partial<Adjustment>) {
     setInput((prev) => {
@@ -200,7 +285,7 @@ export default function Planner({
     "h-11 rounded-md border border-control bg-panel px-4 font-medium hover:bg-ground";
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[400px_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[400px_minmax(0,1fr)]">
       {/* Controls column. Below lg it dissolves (display: contents) into the
           single column, so the result line stays sticky over the whole page.
           The 4px padding keeps focus rings clear of the scroll edge. */}
@@ -215,6 +300,17 @@ export default function Planner({
             className={`text-2xl leading-tight font-bold sm:text-3xl lg:text-2xl xl:text-[1.75rem] ${style.text}`}
           >
             {resultSentence(summary)}
+            {showDelta && change && change.delta !== 0 && (
+              <span
+                className={`ml-3 text-lg font-semibold tabular-nums ${
+                  change.delta > 0
+                    ? "text-status-late-text"
+                    : "text-status-on-time-text"
+                }`}
+              >
+                {formatChange(change.delta)}
+              </span>
+            )}
           </p>
           <p className="mt-2 text-sm text-ink">
             Critical path: {criticalLabels.join(" → ")}
@@ -386,7 +482,28 @@ export default function Planner({
 
       {/* Timeline column */}
       <div className="flex min-w-0 flex-col gap-4">
-        <Gantt result={result} summary={summary} />
+        {!readOnly && !hintDismissed && (
+          <div className="flex items-start gap-3 rounded-lg border border-line bg-panel px-3 py-2 text-sm text-ink">
+            <p className="flex-1">
+              Yellow bars are the critical path. A faint tail is spare time. A
+              dotted segment means the team is late.
+            </p>
+            <button
+              type="button"
+              aria-label="Dismiss hint"
+              className="-my-1 -mr-1 flex size-8 shrink-0 items-center justify-center rounded-md text-lg leading-none text-muted hover:bg-ground"
+              onClick={dismissHint}
+            >
+              ×
+            </button>
+          </div>
+        )}
+        <Gantt
+          result={result}
+          summary={summary}
+          changed={change?.keys}
+          flashId={change?.id}
+        />
 
         <div>
           <div

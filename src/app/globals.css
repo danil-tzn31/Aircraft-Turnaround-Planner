@@ -65,3 +65,19 @@ body {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* Soft orange outline on bars that moved; fades out over 1 s. */
+@keyframes changed-flash {
+  from { opacity: 0.9; }
+  to { opacity: 0; }
+}
+
+.changed-flash {
+  animation: changed-flash 1s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .changed-flash {
+    display: none;
+  }
+}

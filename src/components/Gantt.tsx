@@ -138,9 +138,13 @@ function tickStep(span: number, plotWidth: number) {
 export default function Gantt({
   result,
   summary,
+  changed,
+  flashId = 0,
 }: {
   result: ScheduleResult;
   summary: Summary;
+  changed?: ReadonlySet<string>; // tasks whose start or finish just moved
+  flashId?: number; // new value restarts the highlight animation
 }) {
   const [wrapperRef, width] = useWidth();
   const { tasks, turnMinutes } = result;
@@ -319,6 +323,20 @@ export default function Gantt({
                       strokeWidth={1}
                     />
                   </>
+                )}
+                {changed?.has(task.key) && (
+                  <rect
+                    key={flashId}
+                    x={x0 - 2}
+                    y={y - 2}
+                    width={barW + 4}
+                    height={BAR_H + 4}
+                    rx={4}
+                    fill="none"
+                    className="changed-flash stroke-accent"
+                    strokeWidth={2}
+                    pointerEvents="none"
+                  />
                 )}
                 {/* Wider invisible hit area so the tooltip is easy to reach */}
                 <rect
