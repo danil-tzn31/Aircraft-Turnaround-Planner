@@ -25,13 +25,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${barlow.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <header className="border-b border-asphalt-700">
-          <div className="mx-auto flex max-w-5xl items-center px-4 py-3 sm:px-6">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
             <Link
               href="/"
               className="flex items-center gap-2 text-sm font-semibold tracking-wide text-asphalt-200 uppercase hover:text-asphalt-50"
             >
               <span aria-hidden className="inline-block h-3 w-3 rounded-sm bg-safety" />
               {SITE_NAME}
+            </Link>
+            <Link
+              href="/about"
+              className="text-sm font-semibold tracking-wide text-asphalt-200 uppercase hover:text-asphalt-50"
+            >
+              About
             </Link>
           </div>
         </header>
