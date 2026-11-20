@@ -36,10 +36,19 @@ function fleetOrder(id: string) {
   return (AIRCRAFT_TYPE_IDS as readonly string[]).indexOf(id);
 }
 
+// On Vercel, "use cache" entries survive redeploys, so database changes would never show up.
+// Passing the commit SHA as an argument makes it part of the cache key: every new commit gets fresh entries.
+const deployKey = process.env.VERCEL_GIT_COMMIT_SHA ?? "local";
+
 export async function getAircraftTypes(): Promise<Aircraft[]> {
+  return getAircraftTypesCached(deployKey);
+}
+
+async function getAircraftTypesCached(deployKey: string): Promise<Aircraft[]> {
   "use cache";
   cacheLife("max");
   cacheTag("templates");
+  void deployKey; // only here to vary the cache key
 
   const rows = await db.aircraftType.findMany({ select: aircraftSelect });
   return rows
@@ -80,9 +89,14 @@ export async function getScenario(slug: string): Promise<SavedScenario | null> {
 }
 
 export async function getTemplate(typeId: string): Promise<Template | null> {
+  return getTemplateCached(typeId, deployKey);
+}
+
+async function getTemplateCached(typeId: string, deployKey: string): Promise<Template | null> {
   "use cache";
   cacheLife("max");
   cacheTag("templates");
+  void deployKey; // only here to vary the cache key
 
   if (!isAircraftTypeId(typeId)) return null;
 
