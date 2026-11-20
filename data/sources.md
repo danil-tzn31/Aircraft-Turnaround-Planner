@@ -2,10 +2,10 @@
 
 Durations are approximate and rounded to whole minutes. Not for operational use.
 
-## Airbus A320 (A320)
+## Airbus A320neo (A320)
 - Airbus, Aircraft Characteristics - Airport and Maintenance Planning (AC), A320, revision 46, Jul 01/26
 - Section 5-2-0, Full Servicing Turn Round Time Chart (figure 5-2-0-991-006-A01), A320-200 / A320neo
-- Airbus assumes 150 passengers through one bridge at door 1L: deplaning 20 pax/min, boarding 12 pax/min, plus 2 min for last-passenger seating and headcount. I kept those rates and applied them to Cebu Pacific's 180 seats. Two-door times split the passengers evenly across two doors.
+- Airbus assumes 150 passengers through one bridge at door 1L: deplaning 20 pax/min, boarding 12 pax/min, plus 2 min for last-passenger seating and headcount. I kept those rates and applied them to the 188 seats of Cebu Pacific's A320neo (Cebu also flies some A320neos with 194 seats and older A320ceos with 180; the app uses the 188-seat layout). Two-door times split the passengers evenly across two doors.
 - Fuelling: 20,000 l, one hose, about 16 min pumping plus connect/disconnect. Airbus assumes no refuelling with passengers on board.
 - Catering: one truck, front galley (4 trolleys) then rear galley (7 trolleys) at 1.2 min per trolley, with 2 min to drive between doors.
 - Baggage: 2 cargo loaders, 1.5 min per container.

@@ -9,7 +9,7 @@ A320,catering_fwd,Catering (front galley),catering,6,6,0,deboard,,7
 A320,cleaning,Cabin cleaning,cleaning,12,12,0,deboard,,8
 A320,catering_aft,Catering (rear galley),catering,12,12,0,catering_fwd,,9
 A320,bag_load,Baggage load,baggage,8,8,0,bag_unload,,10
-A320,board,Boarding,passenger,15,8,0,cleaning;catering_aft,fuel,11
+A320,board,Boarding,passenger,16,8,0,cleaning;catering_aft,fuel,11
 A320,headcount,Final headcount,passenger,2,2,0,board,,12
 A320,close,Close doors and remove bridge,departure,2,2,0,headcount;bag_load;water;fuel,,13
 A21N,chocks,Chocks and bridge,technical,2,2,0,,,1

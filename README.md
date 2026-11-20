@@ -8,7 +8,7 @@ See how delays move an aircraft's departure, using critical path scheduling.
 
 ## What it does
 
-A turnaround is everything that happens between a plane parking at the gate and pushing back again: passengers off, cleaning, catering, fuel, bags, and passengers on. The planner lays these out as a timeline for four Cebu Pacific aircraft types (A320, A321neo, A330neo, ATR 72-600) and lets you try "what if" changes:
+A turnaround is everything that happens between a plane parking at the gate and pushing back again: passengers off, cleaning, catering, fuel, bags, and passengers on. The planner lays these out as a timeline for four Cebu Pacific aircraft types (A320neo, A321neo, A330neo, ATR 72-600) and lets you try "what if" changes:
 
 - catering arrives 10 minutes late
 - the inbound flight lands 15 minutes behind schedule
@@ -84,6 +84,6 @@ The build needs the database running because the planner pages are generated ahe
 
 ## Data sources
 
-Timings for the A320, A321neo and A330neo are based on Airbus's Aircraft Characteristics – Airport and Maintenance Planning documents (section 5-2, turnaround time charts). Airbus's boarding and deplaning rates are applied to Cebu Pacific's seat counts. Cleaning times and all ATR 72-600 timings are estimates. Details are in `data/sources.md`.
+Timings for the A320neo, A321neo and A330neo are based on Airbus's Aircraft Characteristics – Airport and Maintenance Planning documents (section 5-2, turnaround time charts). Airbus's boarding and deplaning rates are applied to Cebu Pacific's seat counts. Cleaning times and all ATR 72-600 timings are estimates. Details are in `data/sources.md`.
 
 Durations are approximate, based on public manufacturer planning documents. Not for operational use. This is a personal project and isn't affiliated with Airbus, ATR or Cebu Pacific.
